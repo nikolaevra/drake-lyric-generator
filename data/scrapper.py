@@ -1,6 +1,8 @@
 import urllib.request as urllib2
 from bs4 import BeautifulSoup
 import pandas as pd
+import re
+from unidecode import unidecode
 
 quote_page = 'http://metrolyrics.com/{}-lyrics-drake.html'
 filename = 'drake-songs.csv'
@@ -14,12 +16,17 @@ for index, row in songs.iterrows():
     lyrics = ''
 
     for verse in verses:
-        lyrics = lyrics + verse.text.strip().replace('\n', ' ')
+        text = verse.text.strip()
+        text = re.sub(r"\[.*\]\n", "", unidecode(text))
+        if lyrics == '':
+            lyrics = lyrics + text.replace('\n', '|-|')
+        else:
+            lyrics = lyrics + '|-|' + text.replace('\n', '|-|')
 
     songs.at[index, 'lyrics'] = lyrics
 
     print('saving {}'.format(row['song']))
     songs.head()
 
-print('writing to csv')
+print('writing to .csv')
 songs.to_csv(filename, sep=',', encoding='utf-8')
